@@ -889,16 +889,15 @@ class DeviceUnderTest(object):
             # time of `sleep` may be less than that requested.
             while True:
                 seconds_to_wait = (
-                    self._time_of_last_press - datetime.datetime.now() +
-                    datetime.timedelta(seconds=interpress_delay_secs)
-                ).total_seconds()
+                    self._time_of_last_press - self._time.time() +
+                    interpress_delay_secs)
                 if seconds_to_wait > 0:
                     self._time.sleep(seconds_to_wait)
                 else:
                     break
 
         self._control.press(key)
-        self._time_of_last_press = datetime.datetime.now()
+        self._time_of_last_press = self._time.time()
         self.draw_text(key, duration_secs=3)
 
     def draw_text(self, text, duration_secs=3):
