@@ -885,17 +885,8 @@ class DeviceUnderTest(object):
             interpress_delay_secs = get_config(
                 "press", "interpress_delay_secs", type_=float)
         if self._time_of_last_press is not None:
-            # `sleep` is inside a `while` loop because the actual suspension
-            # time of `sleep` may be less than that requested.
-            while True:
-                seconds_to_wait = (
-                    self._time_of_last_press - self._time.time() +
-                    interpress_delay_secs)
-                if seconds_to_wait > 0:
-                    self._time.sleep(seconds_to_wait)
-                else:
-                    break
-
+            utils.sleep_until(self._time_of_last_press + interpress_delay_secs,
+                              _time=self._time)
         self._control.press(key)
         self._time_of_last_press = self._time.time()
         self.draw_text(key, duration_secs=3)

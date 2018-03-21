@@ -38,3 +38,22 @@ def scoped_curdir():
             yield olddir
         finally:
             os.chdir(olddir)
+
+
+def sleep_until(target, _time=None):
+    """
+    :param target: Time to sleep until, in unix format (seconds since epoch).
+    :param _time: For mocking in unit-tests.
+    """
+
+    if _time is None:
+        import time as _time
+
+    # `sleep` is inside a `while` loop because the actual suspension
+    # time of `sleep` may be less than that requested.
+    while True:
+        seconds_to_wait = target - _time.time()
+        if seconds_to_wait > 0:
+            _time.sleep(seconds_to_wait)
+        else:
+            return
