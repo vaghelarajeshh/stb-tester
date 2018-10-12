@@ -103,10 +103,7 @@ def _load_image(image, flags=cv2.IMREAD_COLOR):
         return _ImageFromUser(image, None, None)
     else:
         relative_filename = image
-        absolute_filename = find_user_file(relative_filename)
-        if not absolute_filename:
-            raise IOError("No such file: %s" % relative_filename)
-        numpy_image = cv2.imread(absolute_filename, flags)
+        numpy_image = cv2.imread(find_user_file(relative_filename), flags)
         if numpy_image is None:
             raise IOError("Failed to load image: %s" %
                           absolute_filename)
@@ -156,7 +153,7 @@ def find_user_file(filename):
         ddebug("Resolved relative path %r to %r" % (filename, abspath))
         return abspath
 
-    return None
+    raise IOError("No such file: %s" % filename)
 
 
 def _iter_frames(depth=1):

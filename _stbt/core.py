@@ -78,10 +78,7 @@ def load_image(filename, flags=cv2.IMREAD_COLOR):
     Added in v28.
     """
 
-    absolute_filename = find_user_file(filename)
-    if not absolute_filename:
-        raise IOError("No such file: %s" % filename)
-    image = cv2.imread(absolute_filename, flags)
+    image = cv2.imread(find_user_file(filename), flags)
     if image is None:
         raise IOError("Failed to load image: %s" % absolute_filename)
     return image
