@@ -16,10 +16,10 @@ https://github.com/stb-tester/stb-tester/blob/master/LICENSE for details).
 import enum
 import time
 
-import cv2
 import numpy
 
 from .core import load_image
+from .framediffer import StrictDiff
 from .logging import debug
 from .types import Region
 
@@ -144,11 +144,14 @@ class _Transition(object):
         self.stable_secs = stable_secs
 
         self.frames = self.dut.frames()
-        self.diff = strict_diff
+        self.Differ = StrictDiff
         self.expiry_time = None
 
     def press_and_wait(self, key):
         original_frame = next(self.frames)
+        differ = self.Differ(original_frame, region=self.region,
+                             mask=self.mask_image,
+                             always_compare_to_initial_frame=True)
         self.dut.press(key)
         press_time = time.time()
         debug("transition: %.3f: Pressed %s" % (press_time, key))
@@ -159,7 +162,7 @@ class _Transition(object):
             if f.time < press_time:
                 # Discard frame to work around latency in video-capture pipeline
                 continue
-            if self.diff(original_frame, f, self.region, self.mask_image):
+            if differ.diff(f):
                 _debug("Animation started", f)
                 animation_start_time = f.time
                 break
@@ -184,10 +187,11 @@ class _Transition(object):
             self.expiry_time = initial_frame.time + self.timeout_secs
 
         f = first_stable_frame = initial_frame
+        differ = self.Differ(initial_frame, region=self.region,
+                             mask=self.mask_image)
         while True:
-            prev = f
             f = next(self.frames)
-            if self.diff(prev, f, self.region, self.mask_image):
+            if differ.diff(f):
                 _debug("Animation in progress", f)
                 first_stable_frame = f
             else:
@@ -209,20 +213,6 @@ class _Transition(object):
 
 def _debug(s, f, *args):
     debug(("transition: %.3f: " + s) % ((f.time,) + args))
-
-
-def strict_diff(f1, f2, region, mask_image):
-    if region is not None:
-        full_frame = Region(0, 0, f1.shape[1], f1.shape[0])
-        region = Region.intersect(full_frame, region)
-        f1 = f1[region.y:region.bottom, region.x:region.right]
-        f2 = f2[region.y:region.bottom, region.x:region.right]
-
-    absdiff = cv2.absdiff(f1, f2)
-    if mask_image is not None:
-        absdiff = cv2.bitwise_and(absdiff, mask_image, absdiff)
-
-    return absdiff.any()
 
 
 class _TransitionResult(object):

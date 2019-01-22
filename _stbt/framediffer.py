@@ -16,10 +16,13 @@ class FrameDiffer(object):
     repeat that work when you need to compare against frame C.
     """
 
-    def __init__(self, initial_frame, region=Region.ALL, mask=None):
+    def __init__(self, initial_frame, region=Region.ALL, mask=None,
+                 always_compare_to_initial_frame=False):
         self.prev_frame = initial_frame
         self.region = Region.intersect(_image_region(self.prev_frame), region)
         self.mask = mask
+        self.always_compare_to_initial_frame = always_compare_to_initial_frame
+
         if self.mask is not None and mask.shape[:2] != (self.region.height,
                                                         self.region.width):
             raise ValueError(
@@ -29,6 +32,20 @@ class FrameDiffer(object):
     def diff(self, frame):
         raise NotImplementedError(
             "%s: 'diff' is not implemented" % self.__class__.__name__)
+
+
+class StrictDiff(FrameDiffer):
+    def diff(self, frame):
+        f1 = crop(self.prev_frame, self.region)
+        f2 = crop(frame, self.region)
+        absdiff = cv2.absdiff(f1, f2)
+        if self.mask is not None:
+            absdiff = cv2.bitwise_and(absdiff, self.mask, absdiff)
+
+        if not self.always_compare_to_initial_frame:
+            self.prev_frame = frame
+
+        return absdiff.any()
 
 
 class MotionDiff(FrameDiffer):
@@ -66,8 +83,9 @@ class MotionDiff(FrameDiffer):
         imglog.imwrite("absdiff_threshold", thresholded)
         imglog.imwrite("absdiff_threshold_erode", eroded)
 
-        self.prev_frame = frame
-        self.prev_frame_gray = frame_gray
+        if not self.always_compare_to_initial_frame:
+            self.prev_frame = frame
+            self.prev_frame_gray = frame_gray
 
         out_region = pixel_bounding_box(eroded)
         if out_region:
