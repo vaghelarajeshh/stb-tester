@@ -26,6 +26,10 @@ from _stbt.core import (
 from _stbt.config import (
     ConfigurationError,
     get_config)
+from _stbt.framediffer import (
+    FrameDiffer,
+    MotionDiff,
+    MotionResult)
 from _stbt.frameobject import (
     FrameObject)
 from _stbt.imgutils import (
@@ -45,7 +49,6 @@ from _stbt.match import (
     wait_for_match)
 from _stbt.motion import (
     detect_motion,
-    MotionResult,
     MotionTimeout,
     wait_for_motion)
 from _stbt.ocr import (
@@ -72,6 +75,7 @@ __all__ = [
     "detect_motion",
     "draw_text",
     "Frame",
+    "FrameDiffer",
     "FrameObject",
     "frames",
     "get_config",
@@ -85,6 +89,7 @@ __all__ = [
     "MatchParameters",
     "MatchResult",
     "MatchTimeout",
+    "MotionDiff",
     "MotionResult",
     "MotionTimeout",
     "NoVideo",

@@ -68,6 +68,7 @@ INSTALL_PYLIB_FILES = \
     _stbt/control.py \
     _stbt/core.py \
     _stbt/cv2_compat.py \
+    _stbt/framediffer.py \
     _stbt/frameobject.py \
     _stbt/gst_hacks.py \
     _stbt/gst_utils.py \
