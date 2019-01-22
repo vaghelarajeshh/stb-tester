@@ -41,6 +41,8 @@ def F(state, t):
         array = numpy.zeros((720, 1280, 3), dtype=numpy.uint8)
     elif state == "white":
         array = numpy.ones((720, 1280, 3), dtype=numpy.uint8) * 255
+    elif state == "almost-white":
+        array = numpy.ones((720, 1280, 3), dtype=numpy.uint8) * 254
     elif state in ["fade-to-black", "fade-to-white"]:
         array = numpy.ones((720, 1280, 3), dtype=numpy.uint8) * 127
     elif state == "ball":
@@ -138,3 +140,35 @@ def test_press_and_wait_timestamps():
     assert isclose(transition.duration, 0.48, rtol=0, atol=0.01)
     assert isclose(transition.end_time, transition.animation_start_time + 0.08)
     assert isclose(transition.animation_duration, 0.08)
+
+
+@pytest.mark.parametrize("diff,expected", [
+    ("default", stbt.TransitionStatus.COMPLETE),
+    ("match", stbt.TransitionStatus.START_TIMEOUT),
+])
+def test_press_and_wait_with_custom_diff(diff, expected):
+    _stbt = FakeDeviceUnderTest()
+
+    if diff == "default":
+        _diff = None
+    elif diff == "match":
+        _diff = MatchDiffer
+
+    transition = stbt.press_and_wait(
+        "white", stable_secs=0.1, timeout_secs=0.2, differ=_diff, _dut=_stbt)
+    print transition
+    assert transition
+
+    transition = stbt.press_and_wait(
+        "almost-white", stable_secs=0.1, timeout_secs=0.2, differ=_diff,
+        _dut=_stbt)
+    print transition
+    assert transition.status == expected
+
+
+class MatchDiffer(stbt.FrameDiffer):
+    def diff(self, frame):
+        same = stbt.match(self.prev_frame, frame, region=self.region)
+        if not self.always_compare_to_initial_frame:
+            self.prev_frame = frame
+        return not same

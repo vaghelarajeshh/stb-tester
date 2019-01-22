@@ -26,7 +26,7 @@ from .types import Region
 
 def press_and_wait(
         key, region=Region.ALL, mask=None, timeout_secs=10, stable_secs=1,
-        _dut=None):
+        differ=None, _dut=None):
 
     """Press a key, then wait for the screen to change, then wait for it to stop
     changing.
@@ -55,6 +55,13 @@ def press_and_wait(
         (within the specified region or mask) for this long, for the transition
         to be considered "complete".
 
+    :param differ: A class that decides whether there are any differences
+        between two consecutive frames. It should inherit from
+        `stbt.FrameDiffer`; see that class for details.
+
+        This defaults to a strict comparison: all pixels must be identical in
+        both frames for them to be considered equal.
+
     :returns:
         An object that will evaluate to true if the transition completed, false
         otherwise. It has the following attributes:
@@ -79,7 +86,7 @@ def press_and_wait(
         ``time.time()``).
     """
 
-    t = _Transition(region, mask, timeout_secs, stable_secs, _dut)
+    t = _Transition(region, mask, timeout_secs, stable_secs, differ, _dut)
     result = t.press_and_wait(key)
     debug("press_and_wait(%r) -> %s" % (key, result))
     return result
@@ -87,7 +94,7 @@ def press_and_wait(
 
 def wait_for_transition_to_end(
         initial_frame=None, region=Region.ALL, mask=None, timeout_secs=10,
-        stable_secs=1, _dut=None):
+        stable_secs=1, differ=None, _dut=None):
 
     """Wait for the screen to stop changing.
 
@@ -110,10 +117,11 @@ def wait_for_transition_to_end(
     :param mask: See `press_and_wait`.
     :param timeout_secs: See `press_and_wait`.
     :param stable_secs: See `press_and_wait`.
+    :param differ: See `press_and_wait`.
 
     :returns: See `press_and_wait`.
     """
-    t = _Transition(region, mask, timeout_secs, stable_secs, _dut)
+    t = _Transition(region, mask, timeout_secs, stable_secs, differ, _dut)
     result = t.wait_for_transition_to_end(initial_frame)
     debug("wait_for_transition_to_end() -> %s" % (result,))
     return result
@@ -121,7 +129,7 @@ def wait_for_transition_to_end(
 
 class _Transition(object):
     def __init__(self, region=Region.ALL, mask=None, timeout_secs=10,
-                 stable_secs=1, dut=None):
+                 stable_secs=1, differ=None, dut=None):
 
         if dut is None:
             import stbt
@@ -142,9 +150,12 @@ class _Transition(object):
 
         self.timeout_secs = timeout_secs
         self.stable_secs = stable_secs
+        if differ is None:
+            self.Differ = StrictDiff
+        else:
+            self.Differ = differ
 
         self.frames = self.dut.frames()
-        self.Differ = StrictDiff
         self.expiry_time = None
 
     def press_and_wait(self, key):
