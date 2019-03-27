@@ -25,6 +25,8 @@
 * E7007: FrameObject properties must not have side-effects that change
   the state of the device-under-test by calling "stbt.press()" or
   "stbt.press_and_wait()".
+* E7008: FrameObject properties must process a single frame; functions like
+  "stbt.wait_for_match" retrieve additional frames from the device-under-test.
 
 """
 
