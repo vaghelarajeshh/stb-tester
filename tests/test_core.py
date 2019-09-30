@@ -60,10 +60,12 @@ def test_crop():
     cropped[0, 0, 0] = 0
     assert cropped[0, 0, 0] == f[672, 1045, 0]
 
-    # Region must be inside the frame (unfortunately this means that you can't
-    # use stbt.Region.ALL):
+    assert numpy.array_equal(reference, stbt.crop(reference, stbt.Region.ALL))
+
+    with pytest.raises(TypeError):
+        stbt.crop(f, None)
     with pytest.raises(ValueError):
-        stbt.crop(f, stbt.Region(x=1045, y=672, right=1281, bottom=721))
+        stbt.crop(f, stbt.Region(2000, 2000, width=10, height=10))
 
 
 def test_region_intersect():

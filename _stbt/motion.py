@@ -11,8 +11,8 @@ from collections import deque
 import cv2
 
 from .config import ConfigurationError, get_config
-from .imgutils import (_frame_repr, _image_region, _ImageFromUser, _load_image,
-                       pixel_bounding_box, crop, limit_time)
+from .imgutils import (crop, _frame_repr, _ImageFromUser, limit_time,
+                       _load_image, pixel_bounding_box, _validate_region)
 from .logging import debug, draw_on, ImageLogger
 from .types import Region, UITestFailure
 
@@ -95,7 +95,7 @@ def detect_motion(timeout_secs=10, noise_threshold=None, mask=None,
     except StopIteration:
         return
 
-    region = Region.intersect(_image_region(frame), region)
+    region = _validate_region(region, frame)
 
     previous_frame_gray = cv2.cvtColor(crop(frame, region),
                                        cv2.COLOR_BGR2GRAY)

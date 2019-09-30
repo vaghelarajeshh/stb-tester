@@ -83,10 +83,21 @@ def crop(frame, region):
 
     Added in v28.
     """
-    if not _image_region(frame).contains(region):
-        raise ValueError("frame with dimensions %r doesn't contain %r"
-                         % (frame.shape, region))
+    region = _validate_region(region, frame)
     return frame[region.y:region.bottom, region.x:region.right]
+
+
+def _validate_region(region, frame):
+    if region is None:
+        raise TypeError(
+            "'region=None' means an empty region. To analyse the entire "
+            "frame use 'region=Region.ALL' (which is the default)")
+    f = _image_region(frame)
+    r = Region.intersect(f, region)
+    if r is None:
+        raise ValueError("Region %r doesn't overlap with the frame %r"
+                         % (region, f))
+    return r
 
 
 def _image_region(image):

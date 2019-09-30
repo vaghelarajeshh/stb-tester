@@ -16,8 +16,8 @@ from builtins import *  # pylint:disable=redefined-builtin,unused-wildcard-impor
 import cv2
 
 from .config import get_config
-from .imgutils import (_frame_repr, _image_region, _ImageFromUser, _load_image,
-                       pixel_bounding_box, crop)
+from .imgutils import (crop, _frame_repr, _ImageFromUser, _load_image,
+                       pixel_bounding_box, _validate_region)
 from .logging import debug, ImageLogger
 from .types import Region
 
@@ -77,10 +77,11 @@ def is_screen_black(frame=None, mask=None, threshold=None, region=Region.ALL):
     else:
         mask = _load_image(mask, cv2.IMREAD_GRAYSCALE)
 
+    _region = _validate_region(region, frame)
+
     imglog = ImageLogger("is_screen_black", region=region, threshold=threshold)
     imglog.imwrite("source", frame)
 
-    _region = Region.intersect(_image_region(frame), region)
     greyframe = cv2.cvtColor(crop(frame, _region), cv2.COLOR_BGR2GRAY)
     if mask.image is not None:
         imglog.imwrite("mask", mask.image)
