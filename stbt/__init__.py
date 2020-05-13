@@ -49,6 +49,8 @@ from _stbt.motion import (
     MotionResult,
     MotionTimeout,
     wait_for_motion)
+from _stbt.multipress import (
+    MultiPress)
 from _stbt.ocr import (
     apply_ocr_corrections,
     match_text,
@@ -104,6 +106,7 @@ __all__ = [
     "MatchTimeout",
     "MotionResult",
     "MotionTimeout",
+    "MultiPress",
     "NoVideo",
     "ocr",
     "OcrEngine",
