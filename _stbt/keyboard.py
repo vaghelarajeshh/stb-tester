@@ -93,7 +93,7 @@ class Keyboard(object):
     .. _Directed Graph: https://en.wikipedia.org/wiki/Directed_graph
     """
 
-    class Selection(namedtuple("Selection", "text region")):
+    class Selection(namedtuple("Selection", "text region mode")):
         """Type that your Page Object's ``selection`` property can return.
 
         Has two attributes:
@@ -101,12 +101,19 @@ class Keyboard(object):
         * ``text`` (*str*) — The selected letter or button.
         * ``region`` (`stbt.Region`) — The position on screen of the selection /
           highlight.
+        * ``mode`` (*str or None*) — The current mode, such as ``"lowercase"``,
+          ``"uppercase"``, ``"shift"``, or ``"symbols"``, if your keyboard
+          supports different modes. Defaults to ``None`` (that is, no support
+          for different modes.)
 
         Is falsey if ``text`` and ``region`` are both ``None``.
         """
 
         def __bool__(self):
             return self.text is not None or self.region is not None
+
+    # Default `mode=None` (`__defaults__` applies to the right-most fields).
+    Selection.__new__.__defaults__ = (None,)
 
     def __init__(self, graph, mask=None, navigate_timeout=20):
         if isinstance(graph, nx.DiGraph):
