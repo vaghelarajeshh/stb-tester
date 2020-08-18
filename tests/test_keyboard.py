@@ -215,7 +215,7 @@ class _Keyboard(stbt.FrameObject):
         super(_Keyboard, self).__init__(
             frame=numpy.zeros((720, 1280, 3), dtype=numpy.uint8))
         self._dut = dut  # Device Under Test -- i.e. ``YouTubeKeyboard``
-        self._selection = self._dut.selection
+        self._selection = stbt.Keyboard.Selection(self._dut.selection, None)
 
     @property
     def is_visible(self):
@@ -303,15 +303,15 @@ def buggykeyboard():
 
 def test_enter_text(youtubekeyboard):  # pylint:disable=redefined-outer-name
     page = youtubekeyboard.page
-    assert page.selection == "A"
+    assert page.selection.text == "A"
     page = page.enter_text("hi there")
-    assert page.selection == "E"
+    assert page.selection.text == "E"
     assert youtubekeyboard.entered == "HI THERE"
 
 
 def test_that_enter_text_uses_minimal_keypresses(youtubekeyboard):  # pylint:disable=redefined-outer-name
     page = youtubekeyboard.page
-    assert page.selection == "A"
+    assert page.selection.text == "A"
     page.enter_text("HI")
     assert youtubekeyboard.pressed == ["KEY_DOWN", "KEY_OK",
                                        "KEY_RIGHT", "KEY_OK"]
@@ -329,9 +329,9 @@ def test_that_keyboard_validates_the_targets(youtubekeyboard):  # pylint:disable
 
 def test_navigate_to(youtubekeyboard):  # pylint:disable=redefined-outer-name
     page = youtubekeyboard.page
-    assert page.selection == "A"
+    assert page.selection.text == "A"
     page = page.navigate_to("SEARCH")
-    assert page.selection == "SEARCH"
+    assert page.selection.text == "SEARCH"
     assert youtubekeyboard.pressed == ["KEY_DOWN"] * 4 + ["KEY_RIGHT"] * 2
 
 
@@ -345,7 +345,7 @@ def test_that_navigate_to_checks_target(
         buggykeyboard, target, verify_every_keypress, num_presses):  # pylint:disable=redefined-outer-name
     """buggykeyboard skips the B when pressing right from A (and lands on C)."""
     page = buggykeyboard.page
-    assert page.selection == "A"
+    assert page.selection.text == "A"
     with pytest.raises(AssertionError):
         page.navigate_to(target, verify_every_keypress)
     assert buggykeyboard.pressed == ["KEY_RIGHT"] * num_presses
