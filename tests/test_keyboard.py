@@ -475,3 +475,103 @@ def test_invalid_edgelist():
         """)
 
     stbt.Keyboard("")  # Doesn't raise
+
+
+# Modes ######################################################################
+
+# 1. Make sure that stbt.Keyboard's underlying Graph representation works.
+def test_keyboard_with_modes():
+    G0 = stbt.Keyboard.parse_edgelist("""
+### Navigation within lowercase mode
+a b KEY_RIGHT
+b a KEY_LEFT
+b c KEY_RIGHT
+c b KEY_LEFT
+a SPACE KEY_DOWN
+b SPACE KEY_DOWN
+c SPACE KEY_DOWN
+SPACE a KEY_UP
+SPACE b KEY_UP
+SPACE c KEY_UP
+
+### Navigation within uppercase (caps-lock) mode
+A B KEY_RIGHT
+B A KEY_LEFT
+B C KEY_RIGHT
+C B KEY_LEFT
+A SPACE KEY_DOWN
+B SPACE KEY_DOWN
+C SPACE KEY_DOWN
+SPACE A KEY_UP
+SPACE B KEY_UP
+SPACE C KEY_UP
+
+### Navigation within numbers mode
+1 2 KEY_RIGHT
+2 1 KEY_LEFT
+2 3 KEY_RIGHT
+3 2 KEY_LEFT
+1 SPACE KEY_DOWN
+2 SPACE KEY_DOWN
+3 SPACE KEY_DOWN
+SPACE 1 KEY_UP
+SPACE 2 KEY_UP
+SPACE 3 KEY_UP
+
+### TODO: How to represent that SPACE (above) is actually a different node in
+### the graph for each of the modes. Perhaps like this:
+[lowercase] a b KEY_RIGHT
+[lowercase] b a KEY_LEFT
+[lowercase] b c KEY_RIGHT
+[lowercase] c b KEY_LEFT
+[lowercase] a SPACE KEY_DOWN
+[lowercase] b SPACE KEY_DOWN
+[lowercase] c SPACE KEY_DOWN
+[lowercase] SPACE a KEY_UP
+[lowercase] SPACE b KEY_UP
+[lowercase] SPACE c KEY_UP
+### (and similarly for uppercase & numbers).
+### Note: 4 fields means mode applies to both source & target.
+### cf. 5-field format in the next section.
+
+### Navigation between modes
+###
+### These could be generated programmatically -- for keys named the same as the
+### modes. We should continue to support this type of explicit expression, in
+### case there's some weird edge case.
+### Note that specifying the mode in square brackets makes it much easier to
+### distinguish the active mode from the selected key name.
+[lowercase] uppercase   [uppercase] uppercase   KEY_OK
+[lowercase] symbols     [symbols] symbols       KEY_OK
+[uppercase] lowercase   [lowercase] lowercase   KEY_OK
+[uppercase] symbols     [symbols] symbols       KEY_OK
+[symbols] lowercase     [lowercase] lowercase   KEY_OK
+[symbols] uppercase     [uppercase] uppercase   KEY_OK
+    """)
+
+# Another idea: Keys that are in more than 1 mode are treated as a single key
+# with non-deterministic behaviour. Probably not a good idea. Would be better
+# to specify them as separate nodes in the graph, but make the serialisation
+# format (parse_edgelist) clever enough so that it isn't a pain to specify.
+#
+# Note that YouTube on Apple TV has the number keys repeated on the uppercase &
+# lowercase modes:
+#
+#     abcdef     ABCDEF
+#     ghijkl     GHIJKL
+#     mnopqr     MNOPQR
+#     stuvwx     STUVWX
+#     yz1234     YZ1234
+#     567890     567890
+#
+# 2. Provide helpers to make it convenient to specify these things.
+#
+# "Navigation within lowercase mode" becomes:
+#
+#     stbt.grid_to_navigation_graph(LOWERCASE_GRID, mode="lowercase")
+#
+# or perhaps:
+#
+#     stbt.grid_to_navigation_graph({"lowercase": LOWERCASE_GRID, ...})
+#
+# TODO: But what about the SPACE row in each mode?
