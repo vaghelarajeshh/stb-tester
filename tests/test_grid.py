@@ -83,7 +83,7 @@ def test_grid_with_data():
             print(g[x])
 
 
-def test_grid_to_navigation_graph():
+def test_grid_to_navigation_graph():  # TODO
     grid = Grid(region=None, data=["ABC",
                                    "DEF"])
     graph = grid_to_navigation_graph(grid)
@@ -113,7 +113,7 @@ def test_grid_to_navigation_graph():
                           "E": {"key": "KEY_DOWN"}}
 
 
-def test_grid_to_navigation_graph_without_data():
+def test_grid_to_navigation_graph_without_data():  # TODO
     # 012
     # 345
     grid = Grid(region=None, cols=3, rows=2)
